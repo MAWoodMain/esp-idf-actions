@@ -23,7 +23,6 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v3
       - name: Checkout repo
         uses: actions/checkout@v2
         with:
@@ -31,6 +30,15 @@ jobs:
       - name: esp-idf build
         uses: espressif/esp-idf-ci-action@main
         with:
-          esp_idf_version: latest
+          esp_idf_version: v4.4
           target: esp32c3
           path: '.'
+      - name: Copy output to pages
+        run: |
+          cp ./build ./pages/
+
+      - name: Deploy 🚀
+        uses: JamesIves/github-pages-deploy-action@v4.3.0
+        with:
+          branch: gh-pages # The branch the action should deploy to.
+          folder: pages # The folder the action should deploy.
