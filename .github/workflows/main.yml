@@ -35,7 +35,7 @@ jobs:
           path: '.'
       - name: Copy output to pages
         run: |
-          cp ./build ./pages/
+          cp -r ./build ./pages/
 
       - name: Deploy 🚀
         uses: JamesIves/github-pages-deploy-action@v4.3.0
