@@ -2,7 +2,7 @@
   "name": "Hello World C3",
   "builds": [
     {
-      "chipFamily": "ESP32C3",
+      "chipFamily": "ESP32-C3",
       "parts": [
         { "path": "build/bootloader/bootloader.bin", "offset": 0 },
         { "path": "build/hello_world.bin", "offset": 65536 },
