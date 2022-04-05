@@ -1,9 +1,28 @@
 <!DOCTYPE html>
 <html>
-<head>
-    <title>Basic Web Page</title>
-</head>
-<body>
-Hello World!
-</body>
+    <head>
+        <title>Basic Web Page</title>
+        <script module>
+            import(
+                // In development we import locally.
+                window.location.hostname === "localhost"
+                    ? "/dist/web/install-button.js"
+                    : "https://unpkg.com/esp-web-tools@7.3.1/dist/web/install-button.js?module"
+                );
+        </script>
+    </head>
+    <body>
+        Hello World!
+
+        <esp-web-install-button manifest="manifest.json">
+            <i slot="unsupported">
+                The demo is not available because your browser does not support Web
+                Serial. Open this page in Google Chrome or Microsoft Edge instead<span
+                    class="not-supported-i hidden"
+            >
+            (but not on your iOS device)</span
+            >.
+            </i>
+        </esp-web-install-button>
+    </body>
 </html>
