@@ -1,52 +1,58 @@
-# Hello World Example
+# ESP-IDF Github Actions Build
 
-Starts a FreeRTOS task to print "Hello World".
+This project is a simple example of how an ESP-IDF project can be automatically built using Github actions and the deployed to a github pages webpage with an embedded flasher system.
 
-(See the README.md file in the upper level 'examples' directory for more information about examples.)
+## See it in action
+Link the this repo's github pages:
+### [https://mawoodmain.github.io/esp-idf-actions/](https://mawoodmain.github.io/esp-idf-actions/)
 
-## How to use example
+## Build System
+The project can be built using Espressif's first party github built system [link](https://github.com/espressif/esp-idf-ci-action)  
+For this to work all you need to do is include a relevant workflow in `.github/workflows/<workflowname>.yml`  
+On this project I created a work flow called main, [main.yml](./.github/workflows/main.yml) this file includes comments explaining how it works  
 
-Follow detailed instructions provided specifically for this example. 
+## Auto-Flasher Website
+The work flow described above ([main.yml](./.github/workflows/main.yml)) copies the build output into the `pages` folder, this folder also has two files in it.  
+- `index.html` This is the web page that will be hosted
+- `manifest.json` This specifies what targets are supported and what files need to be flashed
 
-Select the instructions depending on Espressif chip installed on your development board:
+The website [index.html](./pages/index.html) includes a script called `esp-web-tools` which can be found [here](https://github.com/esphome/esp-web-tools)  
+This script adds the html tag `esp-web-install-button`, when called it is given with the `manifest.json` file above
 
-- [ESP32 Getting Started Guide](https://docs.espressif.com/projects/esp-idf/en/stable/get-started/index.html)
-- [ESP32-S2 Getting Started Guide](https://docs.espressif.com/projects/esp-idf/en/latest/esp32s2/get-started/index.html)
+### Turning on github pages
+After the build process has run once, a new branch called `gh-pages` will exist, this hosts the web content for github pages, you need to configure github to use this branch, below is an image of this repos config: 
+![Settings](./images/pages.png)
+When you first set this up it may take a few minutes for the page to start working as github pages uses a CDN which adds a delay into the deployment process
+### Writing the manifest.json file
 
-
-## Example folder contents
-
-The project **hello_world** contains one source file in C language [hello_world_main.c](main/hello_world_main.c). The file is located in folder [main](main).
-
-ESP-IDF projects are built using CMake. The project build configuration is contained in `CMakeLists.txt` files that provide set of directives and instructions describing the project's source files and targets (executable, library, or both). 
-
-Below is short explanation of remaining files in the project folder.
-
+The manifest json file is simply a reformatting of the build outputs `flash_args` file. The flash_args for this project looks like this:  
 ```
-├── CMakeLists.txt
-├── example_test.py            Python script used for automated example testing
-├── main
-│   ├── CMakeLists.txt
-│   ├── component.mk           Component make file
-│   └── hello_world_main.c
-├── Makefile                   Makefile used by legacy GNU Make
-└── README.md                  This is the file you are currently reading
+--flash_mode dio --flash_freq 40m --flash_size 2MB
+0x0 bootloader/bootloader.bin
+0x10000 hello_world.bin
+0x8000 partition_table/partition-table.bin
+```
+This file describes the memory layout that needs to be programmed onto the target.  
+In this case it says that `bootloader.bin` should be flashed starting at address `0`,  
+`hello_world.bin` should be be flashed starting at address `0x10000` which is `65536` when represented in decimal as opposed to hexadecimal.  
+
+The manifest.json file required for this project looks like this:
+```json
+{
+  "name": "Hello World C3",
+  "builds": [
+    {
+      "chipFamily": "ESP32-C3",
+      "parts": [
+        { "path": "build/bootloader/bootloader.bin", "offset": 0 },
+        { "path": "build/hello_world.bin", "offset": 65536 },
+        { "path": "build/partition_table/partition-table.bin", "offset": 32768 }
+      ]
+    }
+  ]
+}
 ```
 
-For more information on structure and contents of ESP-IDF projects, please refer to Section [Build System](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/build-system.html) of the ESP-IDF Programming Guide.
-
-## Troubleshooting
-
-* Program upload failure
-
-    * Hardware connection is not correct: run `idf.py -p PORT monitor`, and reboot your board to see if there are any output logs.
-    * The baud rate for downloading is too high: lower your baud rate in the `menuconfig` menu, and try again.
-
-## Technical support and feedback
-
-Please use the following feedback channels:
-
-* For technical queries, go to the [esp32.com](https://esp32.com/) forum
-* For a feature request or bug report, create a [GitHub issue](https://github.com/espressif/esp-idf/issues)
-
-We will get back to you as soon as possible.
+Note that the offsets are specified in decimal, hex is not supported for numeric literals in json. Also, the paths have `build/` added as the build folder has been copied into the web directory.  
+The name provided in this json is shown to the user, it can be customised as required.  
+The chip family is also specified, multiple chip families can be specified however they do require different build files typically so you cannot just copy the build config and change the chip family.
